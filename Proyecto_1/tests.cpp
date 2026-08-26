@@ -1,10 +1,10 @@
 #include <cassert>
 #include <iostream>
 
-#include "MinHeap.h"
+#include "PairingHeap.h"
 
 void testInsertAndExtractOrder() {
-    MinHeap heap(5);
+    PairingHeap heap(5);
     heap.insert(1, 50);
     heap.insert(2, 10);
     heap.insert(3, 30);
@@ -19,7 +19,7 @@ void testInsertAndExtractOrder() {
 }
 
 void testTieBreaksBySmallerId() {
-    MinHeap heap(3);
+    PairingHeap heap(3);
     heap.insert(3, 7);
     heap.insert(1, 7);
     heap.insert(2, 7);
@@ -30,7 +30,7 @@ void testTieBreaksBySmallerId() {
 }
 
 void testDecreaseKeyMovesNodeToRoot() {
-    MinHeap heap(4);
+    PairingHeap heap(4);
     heap.insert(1, 20);
     heap.insert(2, 30);
     heap.insert(3, 40);
@@ -43,7 +43,7 @@ void testDecreaseKeyMovesNodeToRoot() {
 }
 
 void testDecreaseKeyPreservesTieBreak() {
-    MinHeap heap(3);
+    PairingHeap heap(3);
     heap.insert(1, 10);
     heap.insert(2, 30);
     heap.insert(3, 20);
