@@ -1,14 +1,6 @@
 #include <iostream>
 
-// PairingHeap es la estructura predeterminada del proyecto.
-// Para ejecutar la alternativa MinHeap, compilar con -DUSE_MIN_HEAP.
-#ifdef USE_MIN_HEAP
-#include "MinHeap.h"
-using ActiveHeap = MinHeap;
-#else
 #include "PairingHeap.h"
-using ActiveHeap = PairingHeap;
-#endif
 
 using namespace std;
 
@@ -20,7 +12,7 @@ int main() {
     int q;
     cin >> n >> q;
 
-    ActiveHeap heap(n + q);
+    PairingHeap heap(n + q);
 
     for (int id = 1; id <= n; id++) {
         long long key;
