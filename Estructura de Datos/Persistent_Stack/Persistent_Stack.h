@@ -1,61 +1,60 @@
-#include "iostream"
-#include "vector"
+#ifndef PERSISTENT_STACK_H
+#define PERSISTENT_STACK_H
+
+#include <vector>
 
 using namespace std;
 
-struct Node{
+struct Node {
     int value;
     Node* next;
 
-    Node(int _value){
-        this->value = _value;
-        this->next = nullptr;
-    }
+    Node(int value, Node* next) : value(value), next(next) {}
 };
 
-class Persistent_Stack{
-private:
-    vector<Node*> versions;
-
-
+class PersistentStack {
 public:
+    // roots[i] apunta al tope de la pila en la version i.
+    vector<Node*> roots;
 
-    Persistent_Stack(){
-        versions.push_back(nullptr);
+    PersistentStack() {
+        roots.push_back(nullptr);
     }
 
-    void push(int _value){
-        Node* before = versions.back();
-        Node* newNode = new Node(_value);
-
-        newNode->next = before;
-        versions.push_back(newNode);
-        
+    int push(int version, int value) {
+        Node* previousTop = roots[version];
+        Node* newTop = new Node(value, previousTop); // NUEVO NODO
+        // newTop->next conserva el resto de la version anterior. // COMPARTIDO
+        roots.push_back(newTop);
+        return static_cast<int>(roots.size()) - 1;
     }
 
-    void pop(){
-        Node* before = versions.back();
-        
-        if( before == nullptr){
-            return;
+    int pop(int version) {
+        Node* previousTop = roots[version];
+
+        if (previousTop == nullptr) {
+            roots.push_back(nullptr); // COMPARTIDO
+        } else {
+            roots.push_back(previousTop->next); // COMPARTIDO
         }
 
-        Node* newNode = before->next;
-        versions.push_back(newNode);
+        return static_cast<int>(roots.size()) - 1;
     }
 
-    int top(){
-        Node* before = versions.back();
-
-        if(before == nullptr){
+    int top(int version) const {
+        if (roots[version] == nullptr) {
             return -1;
         }
-
-        return before->value;
+        return roots[version]->value;
     }
 
-    int top_version(){
-        return versions.size() - 1;
+    bool empty(int version) const {
+        return roots[version] == nullptr;
     }
 
+    int latestVersion() const {
+        return static_cast<int>(roots.size()) - 1;
+    }
 };
+
+#endif
