@@ -117,6 +117,9 @@ public:
         int value,
         int delta
     ) {
+        if (delta != 1 && delta != -1) {
+            throw invalid_argument("delta debe ser +1 o -1");
+        }
         int position = compressedPosition(value);
 
         if (previousRoot->count + delta < 0 ||

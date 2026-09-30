@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
 using namespace std;
@@ -12,6 +13,14 @@ struct PersistentSegmentTreeNode {
 
 class PersistentSegmentTree {
 private:
+    int n;
+
+    void checkVersion(int version) const {
+        if (version < 0 || version >= static_cast<int>(roots.size())) {
+            throw out_of_range("Version de Segment Tree invalida");
+        }
+    }
+
     PersistentSegmentTreeNode* build(const vector<int>& values, int l, int r) {
         PersistentSegmentTreeNode* node =
             new PersistentSegmentTreeNode{0, l, r, nullptr, nullptr};
@@ -72,12 +81,20 @@ private:
 public:
     vector<PersistentSegmentTreeNode*> roots;
 
-    explicit PersistentSegmentTree(const vector<int>& values) {
+    explicit PersistentSegmentTree(const vector<int>& values)
+        : n(static_cast<int>(values.size())) {
+        if (values.empty()) {
+            throw invalid_argument("El arreglo no puede estar vacio");
+        }
         roots.push_back(build(values, 0, static_cast<int>(values.size()) - 1));
     }
 
     // Crea una version nueva a partir de cualquier version anterior.
     int update(int version, int position, int value) {
+        checkVersion(version);
+        if (position < 0 || position >= n) {
+            throw out_of_range("Posicion de update invalida");
+        }
         PersistentSegmentTreeNode* newRoot =
             update(roots[version], position, value);
         roots.push_back(newRoot);
@@ -85,6 +102,10 @@ public:
     }
 
     int query(int version, int l, int r) const {
+        checkVersion(version);
+        if (l < 0 || r >= n || l > r) {
+            throw out_of_range("Rango de query invalido");
+        }
         return query(roots[version], l, r);
     }
 };

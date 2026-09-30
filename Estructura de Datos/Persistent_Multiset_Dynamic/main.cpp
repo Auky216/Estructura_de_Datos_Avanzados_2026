@@ -118,6 +118,9 @@ public:
         int position,
         int delta
     ) {
+        if (delta != 1 && delta != -1) {
+            throw invalid_argument("delta debe ser +1 o -1");
+        }
         if (position < MIN_VALUE || position > MAX_VALUE) {
             throw out_of_range("Valor fuera de [0, 1e9]");
         }

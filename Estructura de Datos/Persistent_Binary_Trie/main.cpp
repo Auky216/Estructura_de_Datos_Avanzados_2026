@@ -13,8 +13,23 @@ int root[MAXQ + 5];
 int frec[NODES];
 int trie[2][NODES];
 
+void validateValue(int value) {
+    if (value < 0) {
+        throw invalid_argument("El Binary Trie solo acepta enteros no negativos");
+    }
+}
+
+void validateNode(int node) {
+    if (node < 0 || node > nodes) {
+        throw out_of_range("Nodo del Binary Trie invalido");
+    }
+}
+
 // El nodo 0 es el nodo nulo y permanece lleno de ceros.
 int add_node(int basis = -1) {
+    if (basis != -1) {
+        validateNode(basis);
+    }
     if (nodes + 1 >= NODES) {
         throw runtime_error("Se agoto el pool de nodos");
     }
@@ -36,6 +51,9 @@ int add_node(int basis = -1) {
 
 // Insercion en el estilo del profesor. pos ya debe ser una copia de last.
 void insert(int x, int last, int pos) {
+    validateValue(x);
+    validateNode(last);
+    validateNode(pos);
     frec[pos] = frec[last] + 1;
 
     for (int bit = L; bit >= 0; --bit) {
@@ -52,6 +70,7 @@ void insert(int x, int last, int pos) {
 
 // Forma comoda: crea y devuelve la nueva raiz.
 int insert(int previousRoot, int value) {
+    validateValue(value);
     int newRoot = add_node(previousRoot); // NUEVO NODO
     insert(value, previousRoot, newRoot);
     return newRoot;
@@ -60,6 +79,11 @@ int insert(int previousRoot, int value) {
 // rootL y rootR son los nodos actuales de las dos versiones.
 // Devuelve cuantos elementos de rootR - rootL siguen por la rama bit.
 int countBranch(int rootL, int rootR, int bit) {
+    validateNode(rootL);
+    validateNode(rootR);
+    if (bit != 0 && bit != 1) {
+        throw invalid_argument("La rama debe ser 0 o 1");
+    }
     int childL = trie[bit][rootL];
     int childR = trie[bit][rootR];
     return frec[childR] - frec[childL];
@@ -67,6 +91,7 @@ int countBranch(int rootL, int rootR, int bit) {
 
 // Devuelve el mayor valor de (x XOR y) dentro de rootR - rootL.
 int maximizeXor(int x, int rootL, int rootR) {
+    validateValue(x);
     if (frec[rootR] - frec[rootL] <= 0) {
         return -1;
     }
@@ -92,6 +117,7 @@ int maximizeXor(int x, int rootL, int rootR) {
 
 // Devuelve el menor valor de (x XOR y) dentro de rootR - rootL.
 int minimizeXor(int x, int rootL, int rootR) {
+    validateValue(x);
     if (frec[rootR] - frec[rootL] <= 0) {
         return -1;
     }
@@ -117,6 +143,7 @@ int minimizeXor(int x, int rootL, int rootR) {
 
 // k se indexa desde 1. Devuelve el k-esimo menor valor de (x XOR y).
 int kthXor(int x, int k, int rootL, int rootR) {
+    validateValue(x);
     int total = frec[rootR] - frec[rootL];
     if (k < 1 || k > total) {
         return -1;
@@ -147,6 +174,7 @@ int kthXor(int x, int k, int rootL, int rootR) {
 
 // Cuenta cuantos valores y cumplen (x XOR y) < K en rootR - rootL.
 int countXorLessThan(int x, long long K, int rootL, int rootR) {
+    validateValue(x);
     if (K <= 0) {
         return 0;
     }

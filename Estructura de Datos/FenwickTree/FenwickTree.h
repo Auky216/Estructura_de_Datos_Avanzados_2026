@@ -1,48 +1,61 @@
-#ifndef FENWICKTREE_H
-#define FENWICKTREE_H
+#ifndef FENWICK_TREE_H
+#define FENWICK_TREE_H
 
+#include <stdexcept>
 #include <vector>
 
-using namespace std;
-
-class FenwickTree{
+class FenwickTree {
 private:
-    vector<int> tree;
+    std::vector<long long> tree;
     int n;
 
-    int lowbit(int i){
-        return i & -i;
+    static int lowbit(int index) {
+        return index & -index;
     }
 
 public:
-
-    FenwickTree(int _n){
-        this->n = _n;
-        this->tree.resize(n + 1, 0);
+    explicit FenwickTree(int size) : n(size) {
+        if (size < 0) {
+            throw std::invalid_argument("El tamano no puede ser negativo");
+        }
+        tree.assign(size + 1, 0);
     }
 
-    void update(int i, int value){
+    // Los indices validos de actualizacion son 1 ... n.
+    void update(int index, long long delta) {
+        if (index < 1 || index > n) {
+            throw std::out_of_range("Indice Fenwick fuera de rango");
+        }
 
-        while(i <= n){
-            tree[i] += value;
-            i = i + lowbit(i);
+        while (index <= n) {
+            tree[index] += delta;
+            index += lowbit(index);
         }
     }
 
-    int query(int i){
-
-        int sum = 0;
-
-        while(i > 0){
-            sum += tree[i];
-            i = i - lowbit(i);
+    // Suma del prefijo [1, index]. query(0) = 0.
+    long long query(int index) const {
+        if (index < 0 || index > n) {
+            throw std::out_of_range("Indice Fenwick fuera de rango");
         }
 
+        long long sum = 0;
+        while (index > 0) {
+            sum += tree[index];
+            index -= lowbit(index);
+        }
         return sum;
     }
 
-    int query(int a, int b){
-        return query(b) - query(a - 1);
+    long long query(int left, int right) const {
+        if (left < 1 || right > n || left > right) {
+            throw std::out_of_range("Rango Fenwick invalido");
+        }
+        return query(right) - query(left - 1);
+    }
+
+    int size() const {
+        return n;
     }
 };
 

@@ -18,14 +18,8 @@ int main() {
 
     cout << "Extrayendo elementos:" << endl;
 
-    while (true) {
-        int minimum = heap.extractMin();
-
-        if (minimum == -1) {
-            break;
-        }
-
-        cout << minimum << " ";
+    while (!heap.empty()) {
+        cout << heap.extractMin() << " ";
     }
 
     cout << endl;

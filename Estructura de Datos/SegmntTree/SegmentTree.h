@@ -1,100 +1,113 @@
-#include "iostream"
+#ifndef SEGMENT_TREE_H
+#define SEGMENT_TREE_H
+
+#include <stdexcept>
 #include <vector>
 
-using namespace std;
-
-struct Node{
-    int value;
+struct Node {
+    long long value;
     Node* left;
     Node* right;
 
-    Node(){
-        this->value = 0;
-        this->left = nullptr;
-        this->right = nullptr;
-    }
-    
+    Node() : value(0), left(nullptr), right(nullptr) {}
 };
 
-class SegmentTree{
+class SegmentTree {
 private:
     Node* root;
     int n;
 
-private:
-
-    Node* build(vector<int>& A, int l, int r){
+    Node* build(const std::vector<int>& values, int left, int right) {
         Node* node = new Node();
 
-        if (l == r){
-            node->value = A[l];
+        if (left == right) {
+            node->value = values[left];
             return node;
         }
 
-        int mid = (l + r) / 2;
-
-        node->left = build(A, l, mid);
-        node->right = build(A, mid + 1, r);
-
+        int middle = (left + right) / 2;
+        node->left = build(values, left, middle);
+        node->right = build(values, middle + 1, right);
         node->value = node->left->value + node->right->value;
-
         return node;
-
     }
 
-    int query(Node* node,int l,int r,int ql,int qr){
-        if (ql <= l && r <= qr){
+    long long query(
+        Node* node,
+        int left,
+        int right,
+        int queryLeft,
+        int queryRight
+    ) const {
+        if (queryRight < left || right < queryLeft) {
+            return 0;
+        }
+        if (queryLeft <= left && right <= queryRight) {
             return node->value;
         }
 
-        if (ql > r || qr < l){
-            return 0;
-        }
-
-        int mid = (l + r) / 2;
-
-        return query(node->left,l,mid,ql,qr) + query(node->right,mid+1,r,ql,qr);
+        int middle = (left + right) / 2;
+        return query(node->left, left, middle, queryLeft, queryRight) +
+               query(node->right, middle + 1, right, queryLeft, queryRight);
     }
 
-    void update(Node* node, int l, int r, int pos, int value){
-
-        if(l == r){
+    void update(Node* node, int left, int right, int position, int value) {
+        if (left == right) {
             node->value = value;
             return;
         }
 
-        int mid = (l + r) / 2;
-
-        if(pos <= mid){
-            update(node->left, l, mid, pos, value);
-        }else{
-            update(node->right, mid + 1, r, pos, value);
+        int middle = (left + right) / 2;
+        if (position <= middle) {
+            update(node->left, left, middle, position, value);
+        } else {
+            update(node->right, middle + 1, right, position, value);
         }
 
         node->value = node->left->value + node->right->value;
     }
-    
 
-public: 
-
-    SegmentTree(vector<int>& A){
-        root = build(A,0,A.size()-1);
-        this->n = A.size();
+    void clear(Node* node) {
+        if (node == nullptr) {
+            return;
+        }
+        clear(node->left);
+        clear(node->right);
+        delete node;
     }
 
-    int query(int l,int r){
-        return this->query(root,0,n-1,l,r);
+public:
+    explicit SegmentTree(const std::vector<int>& values)
+        : root(nullptr), n(static_cast<int>(values.size())) {
+        if (n > 0) {
+            root = build(values, 0, n - 1);
+        }
     }
 
-    void update(int pos, int value){
-        update(root, 0, n - 1, pos, value);
+    ~SegmentTree() {
+        clear(root);
     }
 
-    
+    SegmentTree(const SegmentTree&) = delete;
+    SegmentTree& operator=(const SegmentTree&) = delete;
 
+    long long query(int left, int right) const {
+        if (left < 0 || right >= n || left > right) {
+            throw std::out_of_range("Rango de Segment Tree invalido");
+        }
+        return query(root, 0, n - 1, left, right);
+    }
 
+    void update(int position, int value) {
+        if (position < 0 || position >= n) {
+            throw std::out_of_range("Posicion de Segment Tree invalida");
+        }
+        update(root, 0, n - 1, position, value);
+    }
 
-
-    
-
+    int size() const {
+        return n;
+    }
 };
+
+#endif

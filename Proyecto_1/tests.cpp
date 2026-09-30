@@ -1,6 +1,7 @@
 #include <cassert>
 #include <iostream>
 
+#include "MinHeap.h"
 #include "PairingHeap.h"
 
 void testInsertAndExtractOrder() {
@@ -54,11 +55,44 @@ void testDecreaseKeyPreservesTieBreak() {
     assert(heap.extractMin() == 2);
 }
 
+void testDecreaseKeyTieCanCutById() {
+    PairingHeap heap(2);
+    heap.insert(2, 5);
+    heap.insert(1, 10);
+
+    heap.decreaseKey(1, 5);
+
+    assert(heap.extractMin() == 1);
+    assert(heap.extractMin() == 2);
+    assert(heap.extractMin() == -1);
+}
+
+void testArrayMinHeapOperations() {
+    MinHeap heap(6);
+    heap.insert(3, 30);
+    heap.insert(1, 10);
+    heap.insert(2, 20);
+    heap.insert(4, 40);
+
+    heap.decreaseKey(4, 5);
+    assert(heap.extractMin() == 4);
+    assert(heap.extractMin() == 1);
+
+    // Al empatar las llaves, gana el identificador menor.
+    heap.decreaseKey(3, 20);
+    assert(heap.extractMin() == 2);
+    assert(heap.extractMin() == 3);
+    assert(heap.empty());
+    assert(heap.extractMin() == -1);
+}
+
 int main() {
     testInsertAndExtractOrder();
     testTieBreaksBySmallerId();
     testDecreaseKeyMovesNodeToRoot();
     testDecreaseKeyPreservesTieBreak();
+    testDecreaseKeyTieCanCutById();
+    testArrayMinHeapOperations();
 
     std::cout << "Todas las pruebas pasaron.\n";
     return 0;

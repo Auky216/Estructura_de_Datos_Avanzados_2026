@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
 using namespace std;
@@ -12,6 +13,15 @@ struct PersistentSegmentTreeNode {
 
 class PersistentSegmentTreeByPrefix {
 private:
+    int minimumPosition;
+    int maximumPosition;
+
+    void checkPosition(int position) const {
+        if (position < minimumPosition || position > maximumPosition) {
+            throw out_of_range("Posicion fuera del dominio");
+        }
+    }
+
     PersistentSegmentTreeNode* build(int l, int r) {
         PersistentSegmentTreeNode* node =
             new PersistentSegmentTreeNode{0, l, r, nullptr, nullptr};
@@ -41,7 +51,11 @@ private:
 public:
     vector<PersistentSegmentTreeNode*> roots;
 
-    PersistentSegmentTreeByPrefix(int minPosition, int maxPosition) {
+    PersistentSegmentTreeByPrefix(int minPosition, int maxPosition)
+        : minimumPosition(minPosition), maximumPosition(maxPosition) {
+        if (minPosition > maxPosition) {
+            throw invalid_argument("Dominio de posiciones invalido");
+        }
         // roots[0] representa el prefijo vacio.
         roots.push_back(build(minPosition, maxPosition));
     }
@@ -52,6 +66,11 @@ public:
         int position,
         int delta
     ) {
+        if (prevRoot == nullptr) {
+            throw invalid_argument("La raiz anterior no puede ser nula");
+        }
+        checkPosition(position);
+
         PersistentSegmentTreeNode* current =
             new PersistentSegmentTreeNode(*prevRoot);  // NUEVO NODO
 
@@ -91,11 +110,18 @@ public:
         int ql,
         int qr
     ) const {
+        if (rootR == nullptr || rootL == nullptr ||
+            ql < minimumPosition || qr > maximumPosition || ql > qr) {
+            throw out_of_range("Consulta de prefijos invalida");
+        }
         return queryOne(rootR, ql, qr) - queryOne(rootL, ql, qr);
     }
 
     // Consulta los elementos originales con indices [l, r], indexados desde 1.
     int query(int l, int r, int ql, int qr) const {
+        if (l < 1 || l > r || r >= static_cast<int>(roots.size())) {
+            throw out_of_range("Rango de versiones invalido");
+        }
         return query(roots[r], roots[l - 1], ql, qr);
     }
 };

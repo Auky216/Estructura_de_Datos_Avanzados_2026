@@ -1,6 +1,7 @@
 #ifndef PERSISTENT_STACK_H
 #define PERSISTENT_STACK_H
 
+#include <stdexcept>
 #include <vector>
 
 using namespace std;
@@ -13,6 +14,13 @@ struct Node {
 };
 
 class PersistentStack {
+private:
+    void checkVersion(int version) const {
+        if (version < 0 || version >= static_cast<int>(roots.size())) {
+            throw out_of_range("Version de pila invalida");
+        }
+    }
+
 public:
     // roots[i] apunta al tope de la pila en la version i.
     vector<Node*> roots;
@@ -22,6 +30,7 @@ public:
     }
 
     int push(int version, int value) {
+        checkVersion(version);
         Node* previousTop = roots[version];
         Node* newTop = new Node(value, previousTop); // NUEVO NODO
         // newTop->next conserva el resto de la version anterior. // COMPARTIDO
@@ -30,6 +39,7 @@ public:
     }
 
     int pop(int version) {
+        checkVersion(version);
         Node* previousTop = roots[version];
 
         if (previousTop == nullptr) {
@@ -42,6 +52,7 @@ public:
     }
 
     int top(int version) const {
+        checkVersion(version);
         if (roots[version] == nullptr) {
             return -1;
         }
@@ -49,6 +60,7 @@ public:
     }
 
     bool empty(int version) const {
+        checkVersion(version);
         return roots[version] == nullptr;
     }
 

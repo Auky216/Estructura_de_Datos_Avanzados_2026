@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include <vector>
 
 struct Node {
@@ -88,6 +89,17 @@ private:
         node->prev = nullptr;
     }
 
+    Node* getParent(Node* node) const {
+        Node* firstSibling = node;
+
+        while (firstSibling->prev != nullptr &&
+               firstSibling->prev->child != firstSibling) {
+            firstSibling = firstSibling->prev;
+        }
+
+        return firstSibling->prev;
+    }
+
     // Combina los hijos de una raiz en dos pasadas: izquierda a derecha y
     // luego derecha a izquierda. El resultado es un nuevo pairing heap.
     Node* mergeChildrenByPairs(Node* firstChild) {
@@ -132,19 +144,61 @@ private:
         return result;
     }
 
+    void clear() {
+        std::vector<Node*> pending;
+        if (root != nullptr) {
+            pending.push_back(root);
+        }
+
+        while (!pending.empty()) {
+            Node* current = pending.back();
+            pending.pop_back();
+
+            if (current->child != nullptr) {
+                pending.push_back(current->child);
+            }
+            if (current->sibling != nullptr) {
+                pending.push_back(current->sibling);
+            }
+            delete current;
+        }
+
+        root = nullptr;
+    }
+
 public:
     PairingHeap(int maximumId) {
+        if (maximumId < 0) {
+            throw std::invalid_argument("El id maximo no puede ser negativo");
+        }
         this->root = nullptr;
         this->nodeOf.assign(maximumId + 1, nullptr);
     }
 
-    void insert(int id, long long key) {
+    ~PairingHeap() {
+        clear();
+    }
+
+    PairingHeap(const PairingHeap&) = delete;
+    PairingHeap& operator=(const PairingHeap&) = delete;
+
+    bool insert(int id, long long key) {
+        if (id < 1 || id >= static_cast<int>(nodeOf.size()) ||
+            nodeOf[id] != nullptr) {
+            return false;
+        }
+
         Node* newNode = new Node(id, key);
         this->nodeOf[id] = newNode;
         this->root = mergeTrees(this->root, newNode);
+        return true;
     }
 
     int extractMin() {
+        if (this->root == nullptr) {
+            return -1;
+        }
+
         Node* oldRoot = this->root;
         int minimumId = oldRoot->id;
 
@@ -155,19 +209,30 @@ public:
         return minimumId;
     }
 
-    void decreaseKey(int id, long long newKey) {
+    bool decreaseKey(int id, long long newKey) {
+        if (id < 1 || id >= static_cast<int>(nodeOf.size()) ||
+            nodeOf[id] == nullptr || newKey > nodeOf[id]->key) {
+            return false;
+        }
+
         Node* node = this->nodeOf[id];
         node->key = newKey;
 
         if (node == this->root) {
-            return;
+            return true;
         }
 
-        detachFromParent(node);
-        this->root = mergeTrees(this->root, node);
+        Node* parent = getParent(node);
+
+        // Se corta solo si viola la prioridad, incluido el desempate por id.
+        if (parent != nullptr && hasHigherPriority(node, parent)) {
+            detachFromParent(node);
+            this->root = mergeTrees(this->root, node);
+        }
+        return true;
     }
 
-    bool empty() {
+    bool empty() const {
         return this->root == nullptr;
     }
 };

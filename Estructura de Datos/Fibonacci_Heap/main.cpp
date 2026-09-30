@@ -317,7 +317,7 @@ private:
             // Si necesitamos más posiciones,
             // hacemos crecer el vector.
 
-            while (d >= A.size()) {
+            while (d >= static_cast<int>(A.size())) {
 
                 A.resize(d + 1, nullptr);
             }
@@ -373,7 +373,7 @@ private:
 
                 // Aseguramos espacio
 
-                while (d >= A.size()) {
+                while (d >= static_cast<int>(A.size())) {
 
                     A.resize(d + 1, nullptr);
                 }
@@ -598,6 +598,15 @@ public:
         n = 0;
     }
 
+    ~FibonacciHeap() {
+        while (minNode != nullptr) {
+            extractMin();
+        }
+    }
+
+    FibonacciHeap(const FibonacciHeap&) = delete;
+    FibonacciHeap& operator=(const FibonacciHeap&) = delete;
+
 
 
     // =================================================
@@ -663,6 +672,10 @@ public:
     // =================================================
 
     void unionHeap(FibonacciHeap& other) {
+
+        if (this == &other) {
+            return;
+        }
 
 
         // ---------------------------------------------
@@ -786,6 +799,10 @@ public:
     // =================================================
 
     void decreaseKey(Node* x, int newKey) {
+
+        if (x == nullptr) {
+            return;
+        }
 
 
         // ---------------------------------------------
@@ -1050,6 +1067,14 @@ public:
              << minNode->key
              << endl;
     }
+
+    bool empty() const {
+        return minNode == nullptr;
+    }
+
+    int size() const {
+        return n;
+    }
 };
 
 
@@ -1069,11 +1094,11 @@ int main() {
     // INSERT
     // =================================================
 
-    Node* n5 = heap.insert(5);
+    heap.insert(5);
 
-    Node* n3 = heap.insert(3);
+    heap.insert(3);
 
-    Node* n9 = heap.insert(9);
+    heap.insert(9);
 
     Node* n7 = heap.insert(7);
 

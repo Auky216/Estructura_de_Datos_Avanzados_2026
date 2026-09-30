@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
 using namespace std;
@@ -11,6 +12,13 @@ struct Node {
 };
 
 class PersistentStack {
+private:
+    void checkVersion(int version) const {
+        if (version < 0 || version >= static_cast<int>(roots.size())) {
+            throw out_of_range("Version interna de pila invalida");
+        }
+    }
+
 public:
     vector<Node*> roots;
 
@@ -19,6 +27,7 @@ public:
     }
 
     int push(int version, int value) {
+        checkVersion(version);
         Node* newTop = new Node(value, roots[version]); // NUEVO NODO
         // El resto de la pila pertenece a la version anterior. // COMPARTIDO
         roots.push_back(newTop);
@@ -26,6 +35,7 @@ public:
     }
 
     int pop(int version) {
+        checkVersion(version);
         Node* newTop = roots[version] == nullptr
             ? nullptr
             : roots[version]->next; // COMPARTIDO
@@ -34,15 +44,24 @@ public:
     }
 
     int top(int version) const {
+        checkVersion(version);
+        if (roots[version] == nullptr) {
+            throw out_of_range("La pila esta vacia");
+        }
         return roots[version]->value;
     }
 
     bool empty(int version) const {
+        checkVersion(version);
         return roots[version] == nullptr;
     }
 
     // Se usa cuando outStack esta vacia.
     int bottom(int version) const {
+        checkVersion(version);
+        if (roots[version] == nullptr) {
+            throw out_of_range("La pila esta vacia");
+        }
         Node* current = roots[version];
         while (current->next != nullptr) {
             current = current->next;
@@ -61,6 +80,12 @@ class PersistentQueue {
 private:
     PersistentStack inStack;
     PersistentStack outStack;
+
+    void checkVersion(int version) const {
+        if (version < 0 || version >= static_cast<int>(roots.size())) {
+            throw out_of_range("Version de cola invalida");
+        }
+    }
 
     QueueVersion moveInToOut(QueueVersion state) {
         int currentIn = state.inVersion;
@@ -85,6 +110,7 @@ public:
     }
 
     int push(int version, int value) {
+        checkVersion(version);
         QueueVersion previous = roots[version];
         int newInVersion = inStack.push(previous.inVersion, value);
 
@@ -97,6 +123,7 @@ public:
     }
 
     int front(int version) const {
+        checkVersion(version);
         const QueueVersion& current = roots[version];
         if (current.size == 0) {
             return -1;
@@ -109,6 +136,7 @@ public:
     }
 
     int pop(int version) {
+        checkVersion(version);
         QueueVersion current = roots[version];
 
         if (current.size == 0) {
@@ -127,6 +155,7 @@ public:
     }
 
     bool empty(int version) const {
+        checkVersion(version);
         return roots[version].size == 0;
     }
 };

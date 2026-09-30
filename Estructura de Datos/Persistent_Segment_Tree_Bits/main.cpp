@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
 using namespace std;
@@ -14,6 +15,18 @@ struct PersistentSegmentTreeNode {
 class PersistentBitSegmentTree {
 private:
     int maxBit;
+
+    void checkVersion(int version) const {
+        if (version < 0 || version >= static_cast<int>(roots.size())) {
+            throw out_of_range("Version del entero binario invalida");
+        }
+    }
+
+    void checkPosition(int position) const {
+        if (position < 0 || position > maxBit) {
+            throw out_of_range("Posicion de bit invalida");
+        }
+    }
 
     PersistentSegmentTreeNode* createUniformNode(int l, int r, int bit) {
         int ones = bit * (r - l + 1);
@@ -121,15 +134,25 @@ public:
 
     explicit PersistentBitSegmentTree(int numberOfBits)
         : maxBit(numberOfBits - 1) {
+        if (numberOfBits <= 0) {
+            throw invalid_argument("La cantidad de bits debe ser positiva");
+        }
         // roots[0] es el numero cero: todos sus bits estan apagados.
         roots.push_back(createUniformNode(0, maxBit, 0));
     }
 
     int getBit(int version, int position) const {
+        checkVersion(version);
+        checkPosition(position);
         return getBit(roots[version], position);
     }
 
     int setBit(int version, int position, int bit) {
+        checkVersion(version);
+        checkPosition(position);
+        if (bit != 0 && bit != 1) {
+            throw invalid_argument("El bit debe ser 0 o 1");
+        }
         PersistentSegmentTreeNode* newRoot;
 
         if (getBit(version, position) == bit) {
@@ -143,12 +166,16 @@ public:
     }
 
     int findNextZero(int version, int position) const {
+        checkVersion(version);
+        checkPosition(position);
         return findNextZero(roots[version], position);
     }
 
     // Crea una version que representa roots[version] + 2^x.
     // Devuelve -1 si el carry excede la capacidad reservada.
     int addPowerOfTwo(int version, int x) {
+        checkVersion(version);
+        checkPosition(x);
         int nextZero = findNextZero(version, x);
         if (nextZero == -1) {
             return -1;

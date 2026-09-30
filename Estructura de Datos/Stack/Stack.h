@@ -1,50 +1,64 @@
-#include <iostream>
+#ifndef STACK_H
+#define STACK_H
 
-using namespace std;
-
-struct Node{
+struct Node {
     int value;
     Node* next;
 
-    Node(int _value){
-        this->value = _value;
-        this->next = nullptr;
-    }
+    Node(int value, Node* next = nullptr) : value(value), next(next) {}
 };
 
-class Stack{
+class Stack {
 private:
     Node* head;
+    int numberOfElements;
+
+    void clear() {
+        while (head != nullptr) {
+            Node* temporary = head;
+            head = head->next;
+            delete temporary;
+        }
+        numberOfElements = 0;
+    }
 
 public:
+    Stack() : head(nullptr), numberOfElements(0) {}
 
-    Stack(){
-        this->head = nullptr;
+    ~Stack() {
+        clear();
     }
 
-    void push(int _value){
-        Node* nuevo = new Node(_value);
+    Stack(const Stack&) = delete;
+    Stack& operator=(const Stack&) = delete;
 
-        nuevo->next = head;
-        head = nuevo;
+    void push(int value) {
+        head = new Node(value, head);
+        ++numberOfElements;
     }
 
-    void pop(){
-        if (head == nullptr){
+    void pop() {
+        if (head == nullptr) {
             return;
         }
 
-        Node* temp = head;
+        Node* temporary = head;
         head = head->next;
-
-        delete temp;
+        delete temporary;
+        --numberOfElements;
     }
 
-    int top(){
-        if (head == nullptr){
-            return -1;
-        }
+    int top() const {
+        return head == nullptr ? -1 : head->value;
+    }
 
-        return head->value;
+    bool empty() const {
+        return head == nullptr;
+    }
+
+    int size() const {
+        return numberOfElements;
     }
 };
+
+#endif

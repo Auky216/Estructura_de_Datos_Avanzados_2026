@@ -19,8 +19,19 @@ int nodes = 0;
 Node trie[NODES];
 int root[MAXQ + 5];
 
+void validateString(const string& text) {
+    for (char letter : text) {
+        if (letter < 'a' || letter > 'z') {
+            throw invalid_argument("El trie solo acepta letras a-z");
+        }
+    }
+}
+
 // El nodo 0 es nulo y esta inicializado con ceros globalmente.
 int clone_node(int old) {
+    if (old < 0 || old > nodes) {
+        throw out_of_range("Nodo anterior del trie invalido");
+    }
     if (nodes + 1 >= NODES) {
         throw runtime_error("Se agoto el pool de nodos");
     }
@@ -33,6 +44,7 @@ int clone_node(int old) {
 
 // Devuelve una raiz nueva. previousRoot nunca se modifica.
 int insert(int previousRoot, const string& word) {
+    validateString(word);
     int newRoot = clone_node(previousRoot);
     int previous = previousRoot;
     int current = newRoot;
@@ -41,10 +53,6 @@ int insert(int previousRoot, const string& word) {
     trie[current].cnt = trie[previous].cnt + 1;
 
     for (char letter : word) {
-        if (letter < 'a' || letter > 'z') {
-            throw invalid_argument("El trie solo acepta letras a-z");
-        }
-
         int c = letter - 'a';
         int previousChild = trie[previous].next[c];
         int newChild = clone_node(previousChild);
@@ -62,13 +70,13 @@ int insert(int previousRoot, const string& word) {
 
 // Cantidad de palabras de esta version que empiezan con prefix.
 int prefixCount(int currentRoot, const string& prefix) {
+    validateString(prefix);
+    if (currentRoot < 0 || currentRoot > nodes) {
+        throw out_of_range("Raiz del trie invalida");
+    }
     int current = currentRoot;
 
     for (char letter : prefix) {
-        if (letter < 'a' || letter > 'z') {
-            return 0;
-        }
-
         current = trie[current].next[letter - 'a'];
         if (current == 0) {
             return 0;

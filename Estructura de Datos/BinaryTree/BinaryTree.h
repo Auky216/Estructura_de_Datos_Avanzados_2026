@@ -1,98 +1,142 @@
-#include "iostream"
+#ifndef BINARY_TREE_H
+#define BINARY_TREE_H
 
-using namespace std;
+#include <vector>
 
-struct Node{
+struct Node {
     int value;
     Node* left;
     Node* right;
 
-    Node(int _value){
-        this->value = _value;
-        this->left = nullptr;
-        this->right = nullptr;
-    }
+    explicit Node(int value) : value(value), left(nullptr), right(nullptr) {}
 };
 
-
-
-class BinaryTree{
+class BinaryTree {
 private:
-    Node* head;
+    Node* root;
+    int numberOfElements;
 
-private:
-
-    Node* remove(Node* root, int value){
-    if (root == nullptr) return nullptr;
-
-    if (value < root->value){
-        root->left = remove(root->left, value);
-    }
-    else if (value > root->value){
-        root->right = remove(root->right, value);
-    }
-    else{
-        // Caso 1: sin hijo izquierdo
-        if (root->left == nullptr){
-            Node* temp = root->right;
-            delete root;
-            return temp;
+    Node* remove(Node* current, int value, bool& removed) {
+        if (current == nullptr) {
+            return nullptr;
         }
 
-        // Caso 2: sin hijo derecho
-        if (root->right == nullptr){
-            Node* temp = root->left;
-            delete root;
-            return temp;
+        if (value < current->value) {
+            current->left = remove(current->left, value, removed);
+        } else if (value > current->value) {
+            current->right = remove(current->right, value, removed);
+        } else {
+            removed = true;
+
+            if (current->left == nullptr) {
+                Node* rightChild = current->right;
+                delete current;
+                return rightChild;
+            }
+
+            if (current->right == nullptr) {
+                Node* leftChild = current->left;
+                delete current;
+                return leftChild;
+            }
+
+            Node* successor = current->right;
+            while (successor->left != nullptr) {
+                successor = successor->left;
+            }
+
+            current->value = successor->value;
+            bool ignored = false;
+            current->right = remove(current->right, successor->value, ignored);
         }
 
-        // Caso 3: tiene dos hijos
-        Node* temp = root->right;
-
-        while (temp->left != nullptr){
-            temp = temp->left;
-        }
-
-        root->value = temp->value;
-        root->right = remove(root->right, temp->value);
+        return current;
     }
 
-    return root;
-}
-
-public:
-    BinaryTree(){
-        this->head = nullptr;
-    }
-
-    void insert(int _value){
-
-        if (head == nullptr){
-            head = new Node(_value);
+    void inorder(Node* current, std::vector<int>& values) const {
+        if (current == nullptr) {
             return;
         }
 
-        Node* temp = head;
+        inorder(current->left, values);
+        values.push_back(current->value);
+        inorder(current->right, values);
+    }
 
-        while (true){
-            if (_value < temp->value){
-                if (temp->left == nullptr){
-                    temp->left = new Node(_value);
-                    return;
-                }
-                temp = temp->left;
+    void clear(Node* current) {
+        if (current == nullptr) {
+            return;
+        }
+
+        clear(current->left);
+        clear(current->right);
+        delete current;
+    }
+
+public:
+    BinaryTree() : root(nullptr), numberOfElements(0) {}
+
+    ~BinaryTree() {
+        clear(root);
+    }
+
+    BinaryTree(const BinaryTree&) = delete;
+    BinaryTree& operator=(const BinaryTree&) = delete;
+
+    void insert(int value) {
+        Node** current = &root;
+
+        while (*current != nullptr) {
+            if (value < (*current)->value) {
+                current = &((*current)->left);
             } else {
-                if (temp->right == nullptr){
-                    temp->right = new Node(_value);
-                    return;
-                }
-                temp = temp->right;
+                // Los duplicados se guardan en el subarbol derecho.
+                current = &((*current)->right);
             }
         }
+
+        *current = new Node(value);
+        ++numberOfElements;
     }
 
-    void remove(int value){
-        head = remove(head, value);
+    bool contains(int value) const {
+        Node* current = root;
+
+        while (current != nullptr) {
+            if (value == current->value) {
+                return true;
+            }
+            current = value < current->value
+                ? current->left
+                : current->right;
+        }
+
+        return false;
     }
-    
+
+    bool remove(int value) {
+        bool removed = false;
+        root = remove(root, value, removed);
+        if (removed) {
+            --numberOfElements;
+        }
+        return removed;
+    }
+
+    std::vector<int> inorder() const {
+        std::vector<int> values;
+        values.reserve(numberOfElements);
+        inorder(root, values);
+        return values;
+    }
+
+    bool empty() const {
+        return root == nullptr;
+    }
+
+    int size() const {
+        return numberOfElements;
+    }
 };
+
+#endif
